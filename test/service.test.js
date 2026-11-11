@@ -600,3 +600,59 @@ test('没有 workspace 服务时删除任务不报错，如实记下跳过的会
   assert.equal(result.sessions.skipped, 1);
   assert.equal(result.sessions.archived, 0);
 });
+
+test('编辑任务不该把"复用的会话"丢掉', async () => {
+  const { service, workspaces } = await makeService();
+  try {
+    const requests = [];
+    service.dispatcher = {
+      available: () => true,
+      dispatch: async (request) => {
+        requests.push(request);
+        const sessionId = request.reusedSessionId ?? 'session-1';
+        return { dispatched: true, output: '好', sessionId, reusedSessionId: sessionId, path: 'session' };
+      },
+    };
+    const task = await service.create({
+      title: '甲', prompt: '跑一轮', workspace: workspaces[0],
+      schedule: { kind: 'every-minutes', interval: 5 }, delivery: { kind: 'silent' },
+    });
+    await service.execute(service.store.find(task.id), 'manual');
+    assert.equal(service.store.find(task.id).state.targetSessionId, 'session-1');
+
+    // 面板保存时总会带上整个 target，哪怕用户只改了标题。
+    await service.edit(task.id, { title: '甲（改个名）', target: { kind: 'new_once' } });
+    assert.equal(service.store.find(task.id).state.targetSessionId, 'session-1', '标题改动不该重置会话');
+
+    await service.execute(service.store.find(task.id), 'manual');
+    assert.equal(requests[1].reusedSessionId, 'session-1', '第二轮该复用同一个会话，而不是再建一个');
+  } finally {
+    await service.stop();
+  }
+});
+
+test('换成每次新建会话，就把记住的会话清掉', async () => {
+  const { service, workspaces } = await makeService();
+  try {
+    service.dispatcher = {
+      available: () => true,
+      dispatch: async (request) => ({
+        dispatched: true, output: '好',
+        sessionId: request.reusedSessionId ?? 'session-1',
+        reusedSessionId: request.reusedSessionId ?? 'session-1',
+        path: 'session',
+      }),
+    };
+    const task = await service.create({
+      title: '甲', prompt: '跑一轮', workspace: workspaces[0],
+      schedule: { kind: 'every-minutes', interval: 5 }, delivery: { kind: 'silent' },
+    });
+    await service.execute(service.store.find(task.id), 'manual');
+    assert.equal(service.store.find(task.id).state.targetSessionId, 'session-1');
+
+    await service.edit(task.id, { target: { kind: 'new' } });
+    assert.equal(service.store.find(task.id).state.targetSessionId, undefined);
+  } finally {
+    await service.stop();
+  }
+});
