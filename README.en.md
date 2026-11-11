@@ -11,7 +11,7 @@ Scheduled tasks for DSH: run a command on time, or hand a prompt to the model fo
 Install dsh-im first:
 
 ```bash
-dsh plugin add @xmanrui/dsh-im        # repo https://github.com/xmanrui/dsh-im , npm package @xmanrui/dsh-im
+dsh plugin --profile web add @xmanrui/dsh-im        # use your profile name; this Web UI is web
 ```
 
 Then configure a bot and save at least one delivery target under Settings → IM bots — this plugin's IM destination can only pick saved targets, never raw ids.
@@ -19,15 +19,17 @@ Then configure a bot and save at least one delivery target under Settings → IM
 Then install this plugin:
 
 ```bash
-dsh plugin add github:likesrt/dsh-cron          # repo https://github.com/likesrt/dsh-cron ; add --profile <name> with several profiles, this Web UI is web
+dsh plugin --profile web add github:likesrt/dsh-cron        # repo https://github.com/likesrt/dsh-cron
 ```
+
+`--profile` is required; pass your profile name (this Web UI is `web`).
 
 Without a terminal: Plugins → Install plugin → paste `github:likesrt/dsh-cron` → Install.
 
 The command only adds the package to the profile — then switch `dsh-cron` on in the plugin manager; installing from the plugin page does both steps. Refresh the browser and the sidebar shows Scheduled Tasks. Plain JavaScript, no build step.
 
-- Update: run the same command again, or press update on the plugin page.
-- Remove: `dsh plugin remove dsh-cron`.
+- Update: `dsh plugin --profile web update dsh-cron`. Re-running the same `add` does not re-resolve a git spec — pnpm considers the lockfile current — while `update` refetches HEAD; restart the host or reload the plugin afterwards.
+- Remove: `dsh plugin --profile web remove dsh-cron`.
 - Needs access to github.com; behind a proxy, configure one for git first.
 - Installation turns off the built-in Automation tasks. To run both, switch that option off in the plugin config.
 

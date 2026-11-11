@@ -11,7 +11,7 @@ DSH 的定时任务插件：到点跑一条命令，或者把一句 prompt 交�
 先装 dsh-im：
 
 ```bash
-dsh plugin add @xmanrui/dsh-im        # 仓库 https://github.com/xmanrui/dsh-im ，npm 包 @xmanrui/dsh-im
+dsh plugin --profile web add @xmanrui/dsh-im        # profile 名字换成你自己的，这套 Web 界面是 web
 ```
 
 装完在「设置 → IM机器人」里配好机器人、保存至少一个投递目标——本插件的 IM 出口只能选那里保存过的目标，不认裸 id。
@@ -19,15 +19,17 @@ dsh plugin add @xmanrui/dsh-im        # 仓库 https://github.com/xmanrui/dsh-im
 再装本插件：
 
 ```bash
-dsh plugin add github:likesrt/dsh-cron          # 仓库 https://github.com/likesrt/dsh-cron ；多 profile 时加 --profile <名字>，这套 Web 界面是 web
+dsh plugin --profile web add github:likesrt/dsh-cron        # 仓库 https://github.com/likesrt/dsh-cron
 ```
+
+`--profile` 是必填的，写你的 profile 名（这套 Web 界面是 `web`）。
 
 不想进终端：「插件」页 → 安装插件 → 粘贴 `github:likesrt/dsh-cron` → 安装。
 
 命令行那条只是把包装进 profile，装完还要在「插件」页把 `dsh-cron` 打开；插件页里直接安装则一步到位。之后刷新浏览器，左侧边栏出现「定时任务」。纯 JS，没有构建步骤，装完即用。
 
-- 更新：把上面那条命令再跑一遍，或在插件页点更新。
-- 卸载：`dsh plugin remove dsh-cron`。
+- 更新：`dsh plugin --profile web update dsh-cron`。同一条 `add` 命令不会重新解析 git，pnpm 会认为锁文件已是最新；`update` 才会重新拉 HEAD，拉完重启宿主或重载插件生效。
+- 卸载：`dsh plugin --profile web remove dsh-cron`。
 - 需要能访问 github.com；内网走代理的话先配好 git 的代理。
 - 装上默认关掉内置的「自动化任务」，想两套并存就关掉配置里那个开关。
 
