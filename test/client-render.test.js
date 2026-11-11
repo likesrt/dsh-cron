@@ -156,11 +156,20 @@ const RESPONSES = {
   '/status': { ok: true, running: true, taskCount: TASKS.length },
   '/workspaces': { ok: true, items: [{ path: '/root/workspace', taskCount: TASKS.length }] },
   '/targets': { ok: true, available: false, bots: [] },
+  '/sessions': {
+    ok: true,
+    available: true,
+    items: [
+      { sessionId: 'session-morning', title: '晨会', cwd: '/root/workspace', updatedAt: '2026-11-11T01:00:00.000Z' },
+      { sessionId: 'mnemon-task-v1-11112222-3333-4444-5555-666677778888', title: 'mnemon 任务容器', cwd: '/root/workspace', updatedAt: '2026-11-11T02:00:00.000Z' },
+      { sessionId: 'mnemon-run-v1-11112222-3333-4444-5555-999900001111', title: 'mnemon 运行容器', cwd: '/root/workspace', updatedAt: '2026-11-11T02:00:00.000Z' },
+      { sessionId: 'session-sub', title: '子智能体', origin: 'subagent', cwd: '/root/workspace', updatedAt: '2026-11-11T03:00:00.000Z' },
+    ],
+  },
   '/incidents': { ok: true, incidents: [] },
   '/presets': { ok: true, available: true, items: [{ id: 'standard', name: 'standard', isDefault: true }] },
   '/models': { ok: true, available: true, providers: [{ id: 'me', name: 'me', models: [{ id: 'deepseek-flash', name: 'deepseek-flash' }] }] },
   '/permissions': { ok: true, available: true, items: [{ id: 'auto', name: 'auto' }, { id: 'workspace-write', name: 'workspace-write' }] },
-  '/sessions': { ok: true, items: [] },
   '/runs': {
     ok: true,
     runs: [{ runId: 'run-1', status: 'ok', startedAt: new Date(NOW - 60_000).toISOString(), durationMs: 1200, output: '好了', sessionId: 'session-abc' }],
@@ -280,6 +289,27 @@ test('智能模式的编辑器：Agent、模型、权限、执行位置都渲染
       assert.ok(classes.has(expected), `编辑器缺少样式类 ${expected}`)
     }
     assert.equal(svgs.filter((svg) => typeof svg.width !== 'number').length, 0, '编辑器里有图标没写宽高')
+  } finally {
+    fs.rmSync(temp, { force: true })
+  }
+})
+
+test('会话选择器不列内部会话：mnemon 容器与子智能体都不出现', async () => {
+  // 编辑器平时是关的、起手脚本模式；这里直接打开并把执行位置摆到「关联已有会话」。
+  const patched = fs.readFileSync(CLIENT, 'utf8')
+    .replace('const [editorOpen, setEditorOpen] = React.useState(false)', 'const [editorOpen, setEditorOpen] = React.useState(true)')
+    .replace("const [editorMode, setEditorMode] = React.useState('script')", "const [editorMode, setEditorMode] = React.useState('agent')")
+    .replace("target: { kind: 'new_once' }, repeat:", "target: { kind: 'existing', sessionId: '' }, repeat:")
+  const temp = path.join(os.tmpdir(), `dsh-cron-client-sessions-${process.pid}.js`)
+  fs.writeFileSync(temp, patched)
+  try {
+    const { renderer, slots } = loadClient({ source: temp })
+    const page = slotOf(slots, 'main')
+    const { text } = await renderer.mount(page, 'main')
+    assert.ok(text.includes('晨会'), '正常会话该出现在选择器里')
+    for (const hidden of ['mnemon 任务容器', 'mnemon 运行容器', '子智能体']) {
+      assert.ok(!text.includes(hidden), `内部会话「${hidden}」不该出现在选择器里`)
+    }
   } finally {
     fs.rmSync(temp, { force: true })
   }

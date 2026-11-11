@@ -71,6 +71,14 @@ window.__ModuleLoader__.load({
       return typeof service?.listDirectory === 'function' ? service : null
     }
 
+    /** 宿主自己的会话（mnemon 容器、子智能体）不进选择器，用户列表里本来也看不到。 */
+    const INTERNAL_SESSION_ID = /^mnemon-(?:task|run)-v\d+-/
+    function internalSession(row) {
+      if (!row) return false
+      if (row.origin === 'subagent') return true
+      return typeof row.id === 'string' && INTERNAL_SESSION_ID.test(row.id)
+    }
+
     /** 会话行：客户端会话列表带 displayTitle，比宿主 /sessions 好用。 */
     function readSessions() {
       const store = clientCtx?.get?.('sessions')?.list
@@ -81,6 +89,7 @@ window.__ModuleLoader__.load({
       for (const id of ids) {
         const row = snapshot.byId[id]
         if (!row || row.blank) continue
+        if (internalSession(row)) continue
         rows.push({
           sessionId: row.id ?? id,
           title: row.displayTitle ?? row.title ?? id,
@@ -559,7 +568,12 @@ window.__ModuleLoader__.load({
         }
         let alive = true
         api('/sessions')
-          .then((payload) => { if (alive) setAllSessions((payload.items ?? []).map((item) => ({ ...item, updatedAt: Date.parse(item.updatedAt) || 0 }))) })
+          .then((payload) => {
+            if (!alive) return
+            setAllSessions((payload.items ?? [])
+              .filter((item) => !internalSession({ id: item.sessionId, origin: item.origin }))
+              .map((item) => ({ ...item, updatedAt: Date.parse(item.updatedAt) || 0 })))
+          })
           .catch(() => { if (alive) setAllSessions([]) })
         return () => { alive = false }
       }, [open])

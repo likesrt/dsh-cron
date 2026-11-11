@@ -259,6 +259,10 @@ test('GET /api/sessions 只列该工作区的会话', async () => {
       { sessionId: 'session-b', cwd: '/somewhere/else', title: '乙', updatedAt: '2026-11-10T10:00:00.000Z' },
       { sessionId: 'session-c', title: '没有 cwd' },
       { sessionId: 'session-d', cwd: workspaces[0], updatedAt: '2026-11-11T09:00:00.000Z' },
+      // 宿主自己的会话：mnemon 的任务/运行容器、子智能体，都不该进选择器
+      { sessionId: 'mnemon-task-v1-1b2c3d4e-0000-4000-8000-000000000001', cwd: workspaces[0], title: 'mnemon 任务', updatedAt: '2026-11-11T10:00:00.000Z' },
+      { sessionId: 'mnemon-run-v1-1b2c3d4e-0000-4000-8000-000000000002', cwd: workspaces[0], title: 'mnemon 运行', updatedAt: '2026-11-11T10:00:00.000Z' },
+      { sessionId: 'session-sub', cwd: workspaces[0], title: '子智能体', origin: 'subagent', updatedAt: '2026-11-11T10:00:00.000Z' },
     ];
     const ctxWithSessions = { ...ctx, get: (key) => key === 'sessionController' ? { list: async () => summaries } : undefined };
     registerRoutes({ ...ctxWithSessions, webServer: { register: (route) => { routes.push(route); return () => {}; } } }, service, new Delivery(ctxWithSessions, { warn() {} }), { warn() {} });
