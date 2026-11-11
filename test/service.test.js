@@ -688,3 +688,29 @@ test('复用会话默认每轮清空上下文，显式关掉才带历史', async
     await service.stop();
   }
 });
+
+test('清过上下文的运行会把这个数字记进运行记录', async () => {
+  const { service, workspaces } = await makeService();
+  try {
+    service.dispatcher = {
+      available: () => true,
+      dispatch: async (request) => ({
+        dispatched: true, output: '好',
+        sessionId: request.reusedSessionId ?? 'session-cleared',
+        reusedSessionId: request.reusedSessionId ?? 'session-cleared',
+        clearedContext: 4,
+        path: 'session',
+      }),
+    };
+    const task = await service.create({
+      title: '清空', workspace: workspaces[0], mode: 'agent', prompt: '跑一下',
+      schedule: { kind: 'every-minutes', interval: 5 }, delivery: { kind: 'silent' },
+    });
+    const run = await service.runNow(task.id);
+    assert.equal(run.clearedContext, 4);
+    const [stored] = await service.history(task.id, 5);
+    assert.equal(stored.clearedContext, 4, '落到运行历史里');
+  } finally {
+    await service.stop();
+  }
+});
