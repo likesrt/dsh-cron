@@ -17,7 +17,8 @@
     "icon.svg",
     "cordis.patch.yml",
     "README.md",
-    "README.en.md"
+    "README.en.md",
+    "LICENSE"
   ],
   "dsh": {
     "bundle": {
@@ -45,5 +46,13 @@
   },
   "license": "MIT",
   "private": true,
-  "icon": "./icon.svg"
+  "icon": "./icon.svg",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/likesrt/dsh-cron.git"
+  },
+  "homepage": "https://github.com/likesrt/dsh-cron#readme",
+  "bugs": {
+    "url": "https://github.com/likesrt/dsh-cron/issues"
+  }
 }
