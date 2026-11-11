@@ -1,6 +1,6 @@
 {
   "meta": {
     "title": "Scheduled Tasks",
-    "description": "Cron jobs that either run a script or wake the model: a sidebar entry with the whole page embedded in the main area, data kept per workspace."
+    "description": "Run a script on time or wake the model for one turn: a sidebar entry with the page embedded in the main area, tasks and history kept per workspace."
   }
 }
