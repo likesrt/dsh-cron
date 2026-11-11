@@ -1,5 +1,7 @@
 # dsh-cron
 
+[中文](README.md)
+
 Scheduled tasks for DSH: run a command on time, or hand a prompt to the model for one turn, and push the result wherever you want it. One sidebar entry, the page embedded in the main area, task data kept per workspace. Once installed it takes over the built-in Automation tasks.
 
 ## Install
