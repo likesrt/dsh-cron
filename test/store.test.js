@@ -223,3 +223,84 @@ test('MultiStore 把历史保留配置带给每个工作区', async () => {
   assert.equal(two.historyDays, 30);
   assert.equal(two.historyRecords, 200);
 });
+
+test('登记表里的工作区目录没了：加载时甩掉那条，不连目录一起复活', async () => {
+  const root = await tempDir('dsh-cron-prune-');
+  const live = path.join(root, 'ws-live');
+  const dead = path.join(root, 'ws-dead');
+  await fs.mkdir(live, { recursive: true });
+  await fs.mkdir(dead, { recursive: true });
+  const registryPath = path.join(root, 'registry', 'workspaces.json');
+  await fs.mkdir(path.dirname(registryPath), { recursive: true });
+  await fs.writeFile(registryPath, JSON.stringify({ version: 1, workspaces: [live, dead] }), 'utf8');
+  await fs.rm(dead, { recursive: true, force: true });
+
+  const store = new MultiStore({ registryPath, timeZone: 'Asia/Shanghai' });
+  await store.load();
+  assert.deepEqual(store.listWorkspaces().map((item) => item.path), [live]);
+
+  const registry = JSON.parse(await fs.readFile(registryPath, 'utf8'));
+  assert.deepEqual(registry.workspaces, [live], '残留的那条要从登记表里去掉');
+  await assert.rejects(fs.stat(dead), { code: 'ENOENT' }, '不该为了读数据把删掉的目录重建出来');
+});
+
+test('保存任务只写它自己那个工作区', async () => {
+  const { service, workspaces } = await makeService({ workspaceCount: 2 });
+  try {
+    const [first, second] = workspaces;
+    await service.create({
+      title: '乙', workspace: second, mode: 'script', script: 'true',
+      schedule: { kind: 'every-minutes', interval: 5 }, delivery: { kind: 'silent' },
+    });
+    const secondFile = path.join(second, 'dsh-cron', 'tasks.json');
+    await fs.rm(secondFile, { force: true });
+
+    await service.create({
+      title: '甲', workspace: first, mode: 'script', script: 'true',
+      schedule: { kind: 'every-minutes', interval: 5 }, delivery: { kind: 'silent' },
+    });
+
+    await assert.rejects(fs.stat(secondFile), { code: 'ENOENT' }, '别的工作区不该被顺手写一遍');
+  } finally {
+    await service.stop();
+  }
+});
+
+test('别的登记工作区目录被删了，这边保存任务照旧', async () => {
+  const { service, workspaces } = await makeService({ workspaceCount: 2 });
+  try {
+    const [first, second] = workspaces;
+    await service.create({
+      title: '甲', workspace: first, mode: 'script', script: 'true',
+      schedule: { kind: 'every-minutes', interval: 5 }, delivery: { kind: 'silent' },
+    });
+    // 运行中有人把第二个工作区整个删了：它只该影响它自己，不该连累这边保存。
+    await fs.rm(second, { recursive: true, force: true });
+
+    await service.create({
+      title: '乙', workspace: first, mode: 'script', script: 'true',
+      schedule: { kind: 'every-minutes', interval: 10 }, delivery: { kind: 'silent' },
+    });
+    assert.deepEqual(service.list().map((task) => task.title).sort(), ['乙', '甲']);
+  } finally {
+    await service.stop();
+  }
+});
+
+test('工作区不存在就不建任务', async () => {
+  const { service, workspaces } = await makeService();
+  try {
+    const missing = path.join(workspaces[0], '没这个目录');
+    await assert.rejects(
+      () => service.create({
+        title: '甲', workspace: missing, mode: 'script', script: 'true',
+        schedule: { kind: 'every-minutes', interval: 5 }, delivery: { kind: 'silent' },
+      }),
+      /工作区不存在/,
+    );
+    assert.deepEqual(service.list(), []);
+    await assert.rejects(fs.stat(path.join(missing, 'dsh-cron')), { code: 'ENOENT' }, '不该顺手造一个数据目录出来');
+  } finally {
+    await service.stop();
+  }
+});

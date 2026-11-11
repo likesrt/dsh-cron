@@ -1,3 +1,9 @@
 node_modules/
 *.log
 .DS_Store
+# 本仓库有时正好落在工作区里，插件会往 <工作区>/dsh-cron 写运行数据
+tasks.json
+runs.jsonl
+incidents.json
+*.tmp
+.tick.lock
