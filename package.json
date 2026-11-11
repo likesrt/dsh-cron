@@ -1,6 +1,6 @@
 {
   "name": "dsh-cron",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "定时任务：脚本或模型执行的定时作业，侧边栏内嵌管理页面，任务数据按工作区隔离。",
   "type": "module",
   "main": "lib/index.js",
