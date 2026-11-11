@@ -6,10 +6,20 @@ DSH 的定时任务插件：到点跑一条命令，或者把一句 prompt 交�
 
 ## 安装
 
-从 GitHub 装：
+**强依赖 [dsh-im](https://github.com/xmanrui/dsh-im)。** 推送 IM 靠它——微信、企微、飞书、钉钉、QQ、Telegram、WhatsApp、Slack、Discord、Matrix 的通道和目标都由 dsh-im 提供；没装 dsh-im，推送里就只剩静默、回原会话、会话日志三种出口。
+
+先装 dsh-im：
 
 ```bash
-dsh plugin add github:likesrt/dsh-cron          # 多 profile 时加 --profile <名字>，这套 Web 界面是 web
+dsh plugin add @xmanrui/dsh-im        # 仓库 https://github.com/xmanrui/dsh-im ，npm 包 @xmanrui/dsh-im
+```
+
+装完在「设置 → IM机器人」里配好机器人、保存至少一个投递目标——本插件的 IM 出口只能选那里保存过的目标，不认裸 id。
+
+再装本插件：
+
+```bash
+dsh plugin add github:likesrt/dsh-cron          # 仓库 https://github.com/likesrt/dsh-cron ；多 profile 时加 --profile <名字>，这套 Web 界面是 web
 ```
 
 不想进终端：「插件」页 → 安装插件 → 粘贴 `github:likesrt/dsh-cron` → 安装。

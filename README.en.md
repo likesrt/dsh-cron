@@ -6,10 +6,20 @@ Scheduled tasks for DSH: run a command on time, or hand a prompt to the model fo
 
 ## Install
 
-From GitHub:
+**Depends on [dsh-im](https://github.com/xmanrui/dsh-im).** IM delivery comes from it: WeChat, WeCom, Feishu, DingTalk, QQ, Telegram, WhatsApp, Slack, Discord and Matrix channels and targets are all dsh-im's. Without it, delivery keeps only silent, back where it started, and session log.
+
+Install dsh-im first:
 
 ```bash
-dsh plugin add github:likesrt/dsh-cron          # add --profile <name> with several profiles; this Web UI is web
+dsh plugin add @xmanrui/dsh-im        # repo https://github.com/xmanrui/dsh-im , npm package @xmanrui/dsh-im
+```
+
+Then configure a bot and save at least one delivery target under Settings → IM bots — this plugin's IM destination can only pick saved targets, never raw ids.
+
+Then install this plugin:
+
+```bash
+dsh plugin add github:likesrt/dsh-cron          # repo https://github.com/likesrt/dsh-cron ; add --profile <name> with several profiles, this Web UI is web
 ```
 
 Without a terminal: Plugins → Install plugin → paste `github:likesrt/dsh-cron` → Install.
