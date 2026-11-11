@@ -1,0 +1,20 @@
+# dsh-cron 取代内置定时任务：
+#   1) 插入自己的宿主行；
+#   2) 关掉内置 schedule 的服务、工具与页面。
+# 想保留内置那套，删掉下面三条 disabled 即可（并把 disableBuiltinSchedule 设为 false）。
+- insert:
+    - id: dsh-cron
+      name: dsh-cron
+      config:
+        timeZone: Asia/Shanghai
+        timeLimitMs: 180000
+        maxConcurrent: 3
+        disableBuiltinSchedule: true
+        # 重新挂载插件时重新 import 实现体，改完代码不用重启 host。
+        devReload: true
+- id: schedule
+  disabled: true
+- id: tool-schedule
+  disabled: true
+- id: ui-schedule
+  disabled: true
