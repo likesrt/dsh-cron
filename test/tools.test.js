@@ -90,3 +90,13 @@ test('cron_targets 把已保存的目标摊给模型看', async () => {
   assert.equal(result.available, true);
   assert.deepEqual(result.bots, []);
 });
+
+test('建任务工具说清默认值：智能模式、会话复用，且脚本更合适时先问用户', () => {
+  const create = tool(fakeService(), 'cron_create');
+  const text = [create.description, create.parameters.properties.mode.description].join('\n');
+  assert.match(text, /默认 agent（智能模式）/);
+  assert.match(text, /用户明确说要跑某个命令\/脚本才用 script/);
+  assert.match(text, /先把建议和理由说给用户/);
+  assert.match(create.parameters.properties.target.description, /不填 target 就行，别默认写 new/);
+  assert.match(tool(fakeService(), 'cron_edit').parameters.properties.mode.description, /拿不准就先问用户/);
+});

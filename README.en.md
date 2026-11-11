@@ -58,8 +58,10 @@ The command only adds the package to the profile — then switch `dsh-cron` on i
 
 | Mode | What it does | Whether it pushes |
 |---|---|---|
+| Agent (default) | Hands the prompt to the model for one turn | With a channel configured, a reply that is only `[silent]` skips this round |
 | Script | Runs one command, no model involved | Pushes when stdout has content, stays silent when empty |
-| Agent | Hands the prompt to the model for one turn | With a channel configured, a reply that is only `[silent]` skips this round |
+
+Agent is the default: a task still goes to the model when you only type a command line. Pick script mode explicitly — and when a script would clearly be the cheaper way, say so and let the user decide rather than switching modes on your own.
 
 Both modes keep run records; `deliveryReason` says why a round pushed or stayed quiet.
 

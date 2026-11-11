@@ -328,3 +328,35 @@ test('写会话日志可以不指定会话：跑完写回本次运行的会话',
   assert.deepEqual(normalizeDelivery({ kind: 'session' }), { kind: 'session' });
   assert.deepEqual(normalizeDelivery({ kind: 'session', sessionId: 's-1' }), { kind: 'session', sessionId: 's-1' });
 });
+
+test('不写 mode 默认智能模式，只给一条命令才算脚本模式', () => {
+  const prompt = createTask({
+    title: '甲', prompt: '看看今天的告警', workspace: '/tmp/ws',
+    schedule: { kind: 'every-minutes', interval: 5 },
+  });
+  assert.equal(prompt.mode, 'agent');
+
+  const command = createTask({
+    title: '乙', script: 'echo hi', workspace: '/tmp/ws',
+    schedule: { kind: 'every-minutes', interval: 5 },
+  });
+  assert.equal(command.mode, 'script');
+
+  const explicit = createTask({
+    title: '丙', mode: 'script', script: 'true', workspace: '/tmp/ws',
+    schedule: { kind: 'every-minutes', interval: 5 },
+  });
+  assert.equal(explicit.mode, 'script');
+
+  assert.throws(() => createTask({
+    title: '丁', workspace: '/tmp/ws', schedule: { kind: 'every-minutes', interval: 5 },
+  }), /prompt/);
+});
+
+test('执行位置不写就是新建会话并复用', () => {
+  const task = createTask({
+    title: '甲', prompt: '跑一轮', workspace: '/tmp/ws',
+    schedule: { kind: 'every-minutes', interval: 5 },
+  });
+  assert.deepEqual(task.target, { kind: 'new_once' });
+});

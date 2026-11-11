@@ -970,7 +970,7 @@ window.__ModuleLoader__.load({
       const [data, setData] = React.useState({ tasks: [], status: null, targets: null, workspaces: [] })
       const [editing, setEditing] = React.useState(null)
       const [editorOpen, setEditorOpen] = React.useState(false)
-      const [editorMode, setEditorMode] = React.useState('script')
+      const [editorMode, setEditorMode] = React.useState('agent')
       const [history, setHistory] = React.useState(null)
       const [incidentsOpen, setIncidentsOpen] = React.useState(false)
       const [openIncidents, setOpenIncidents] = React.useState(0)
@@ -1019,7 +1019,7 @@ window.__ModuleLoader__.load({
 
       const openEditor = (task, mode) => {
         setEditing(task)
-        setEditorMode(mode ?? task?.mode ?? 'script')
+        setEditorMode(mode ?? task?.mode ?? 'agent')
         setEditorOpen(true)
         setMenuOpen(false)
       }

@@ -271,11 +271,29 @@ test('主面板：页签、搜索、新建与任务行都渲染出来', async ()
   assert.equal(text.split('会话').length - 1 >= 1, true)
 })
 
+test('新建任务默认就是智能模式，执行位置默认新建会话并复用', async () => {
+  const patched = fs.readFileSync(CLIENT, 'utf8')
+    .replace('const [editorOpen, setEditorOpen] = React.useState(false)', 'const [editorOpen, setEditorOpen] = React.useState(true)')
+  const temp = path.join(os.tmpdir(), `dsh-cron-client-defaults-${process.pid}.js`)
+  fs.writeFileSync(temp, patched)
+  try {
+    const { renderer, slots } = loadClient({ source: temp })
+    const { nodes } = await renderer.mount(slotOf(slots, 'main'), 'main')
+    // 智能模式的输入框是 prompt 的 textarea；脚本模式是一条命令的 input。
+    const area = nodes.find((node) => node.type === 'textarea' && node.props?.className === 'dshcron-textarea')
+    assert.ok(area, '默认该是智能模式')
+    assert.equal(area.props.placeholder, '看看今天的告警，挑出需要人工处理的')
+    const command = nodes.find((node) => node.type === 'input' && node.props?.placeholder === './cron/check-ports/check.sh')
+    assert.equal(command, undefined, '默认不该停在脚本模式')
+  } finally {
+    fs.rmSync(temp, { force: true })
+  }
+})
+
 test('智能模式的编辑器：Agent、模型、权限、执行位置都渲染', async () => {
   // 弹窗平时是关闭的，这里把它打开、并以智能模式起手，才能覆盖到智能模式那几行。
   const patched = fs.readFileSync(CLIENT, 'utf8')
     .replace('const [editorOpen, setEditorOpen] = React.useState(false)', 'const [editorOpen, setEditorOpen] = React.useState(true)')
-    .replace("const [editorMode, setEditorMode] = React.useState('script')", "const [editorMode, setEditorMode] = React.useState('agent')")
   const temp = path.join(os.tmpdir(), `dsh-cron-client-agent-${process.pid}.js`)
   fs.writeFileSync(temp, patched)
   try {
@@ -298,7 +316,6 @@ test('会话选择器不列内部会话：mnemon 容器与子智能体都不出�
   // 编辑器平时是关的、起手脚本模式；这里直接打开并把执行位置摆到「关联已有会话」。
   const patched = fs.readFileSync(CLIENT, 'utf8')
     .replace('const [editorOpen, setEditorOpen] = React.useState(false)', 'const [editorOpen, setEditorOpen] = React.useState(true)')
-    .replace("const [editorMode, setEditorMode] = React.useState('script')", "const [editorMode, setEditorMode] = React.useState('agent')")
     .replace("target: { kind: 'new_once' }, repeat:", "target: { kind: 'existing', sessionId: '' }, repeat:")
   const temp = path.join(os.tmpdir(), `dsh-cron-client-sessions-${process.pid}.js`)
   fs.writeFileSync(temp, patched)
