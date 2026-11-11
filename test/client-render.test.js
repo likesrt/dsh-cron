@@ -300,7 +300,8 @@ test('智能模式的编辑器：Agent、模型、权限、执行位置都渲染
     const { renderer, slots } = loadClient({ source: temp })
     const page = slotOf(slots, 'main')
     const { text, classes, svgs } = await renderer.mount(page, 'main')
-    for (const expected of ['执行内容', '工作区', '运行 Agent', '运行模型', '权限', '执行位置', '执行周期', '重复次数', '失败重试', '单次超时', '推送', '回原会话', '放弃', '创建', '次', '秒']) {
+    // 复用会话默认「每轮清空上下文」，这个开关也要在编辑器里露头。
+    for (const expected of ['执行内容', '工作区', '运行 Agent', '运行模型', '权限', '执行位置', '每轮清空上下文', '执行周期', '重复次数', '失败重试', '单次超时', '推送', '回原会话', '放弃', '创建', '次', '秒']) {
       assert.ok(text.includes(expected), `编辑器缺少「${expected}」`)
     }
     for (const expected of ['dshcron-drawer', 'dshcron-drawer-head', 'dshcron-drawer-foot', 'dshcron-card', 'dshcron-frow']) {

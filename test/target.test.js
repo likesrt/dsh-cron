@@ -10,6 +10,9 @@ test('三种执行位置都能归一化', () => {
   assert.deepEqual(normalizeTarget({ kind: 'new' }), { kind: 'new' });
   assert.deepEqual(normalizeTarget({ kind: 'existing', sessionId: 'session-9' }), { kind: 'existing', sessionId: 'session-9' });
   assert.deepEqual(normalizeTarget('new_once'), { kind: 'new_once' });
+  // 复用会话默认每轮清空上下文；显式关掉才把标记存下来
+  assert.deepEqual(normalizeTarget({ kind: 'new_once', freshContext: false }), { kind: 'new_once', freshContext: false });
+  assert.deepEqual(normalizeTarget({ kind: 'new_once', freshContext: true }), { kind: 'new_once' });
   assert.throws(() => normalizeTarget({ kind: 'existing' }));
   assert.throws(() => normalizeTarget({ kind: 'nope' }));
 });

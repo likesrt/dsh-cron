@@ -505,7 +505,17 @@ window.__ModuleLoader__.load({
             value: value?.sessionId ?? '', rows,
             onChange: (sessionId) => onChange({ kind: 'existing', sessionId }),
           })
-          : null)
+          : kind === 'new_once'
+            ? h('label', { className: 'dshcron-check' },
+              h('input', {
+                type: 'checkbox',
+                checked: value?.freshContext !== false,
+                onChange: (event) => onChange(event.target.checked
+                  ? { kind: 'new_once' }
+                  : { kind: 'new_once', freshContext: false }),
+              }),
+              h('span', null, '每轮清空上下文'))
+            : null)
     }
 
     function Editor({ open, task, initialMode = 'script', workspaces, targets, onClose, onSaved, notify }) {
@@ -1198,6 +1208,8 @@ window.__ModuleLoader__.load({
 .dshcron-frow-label{color:var(--dsw-alias-label-secondary);font-size:13px;white-space:nowrap}
 .dshcron-frow-control{min-width:0;display:flex;justify-content:flex-end}
 .dshcron-frow-control>select,.dshcron-frow-control>input{width:100%}
+.dshcron-check{display:flex;align-items:center;gap:8px;margin-top:10px;color:var(--dsw-alias-label-secondary);font-size:13px;cursor:pointer}
+.dshcron-check input{accent-color:var(--dsw-alias-brand-primary);width:14px;height:14px;margin:0;cursor:pointer}
 .dshcron-frow-control>.dshcron-unit-input{width:100%}
 .dshcron-unit-input{display:flex;align-items:center;gap:8px;min-width:0}
 .dshcron-unit-input>input{flex:1;min-width:0}

@@ -107,9 +107,11 @@ Resolution happens before every delivery, so changing target routing later needs
 
 | Run location | Behaviour |
 |---|---|
-| New session, reused | Created on the first run, reused afterwards |
+| New session, reused | Created on the first run, reused afterwards; the model context is cleared before every run (default) |
 | New session every run | One session per run |
 | Existing session | Run inside a chosen session of that workspace |
+
+"Clear context" clears what the **model** sees: the session id, the transcript and the full log stay, but the next request carries none of the previous run. Turn the switch off in the editor (or pass `target.freshContext: false` to the tool) to let the model continue where it left off.
 
 Script tasks have no session and no such setting.
 
@@ -122,6 +124,16 @@ Agent and model only appear in agent mode; the session is switched to them befor
 ## Retries and timeouts
 
 Each task can set its own retries (0..5, backing off 5s × the attempt number) and per-run timeout in seconds. Only the final outcome is delivered; the intermediate attempts are not sent. A timeout is not retried.
+
+## Commands
+
+`/clear` drops the current session's model context with the same logic the per-run clearing uses: session, transcript and log stay, only the model's view is emptied. It is the platform's positional surface replacement (the one `/compact` uses), so it survives a reload.
+
+```
+/clear
+```
+
+It refuses while the session is running; try again once it is idle.
 
 ## Panel
 

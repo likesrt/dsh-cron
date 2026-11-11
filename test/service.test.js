@@ -656,3 +656,35 @@ test('换成每次新建会话，就把记住的会话清掉', async () => {
     await service.stop();
   }
 });
+
+test('复用会话默认每轮清空上下文，显式关掉才带历史', async () => {
+  const { service, workspaces } = await makeService();
+  try {
+    const requests = [];
+    service.dispatcher = {
+      available: () => true,
+      dispatch: async (request) => {
+        requests.push(request);
+        const sessionId = request.reusedSessionId ?? 'session-ctx';
+        return { dispatched: true, output: '好', sessionId, reusedSessionId: sessionId, path: 'session' };
+      },
+    };
+    const keep = await service.create({
+      title: '带历史', workspace: workspaces[0], mode: 'agent', prompt: '跑一下',
+      schedule: { kind: 'every-minutes', interval: 5 }, delivery: { kind: 'silent' },
+      target: { kind: 'new_once', freshContext: false },
+    });
+    const fresh = await service.create({
+      title: '不带历史', workspace: workspaces[0], mode: 'agent', prompt: '跑一下',
+      schedule: { kind: 'every-minutes', interval: 5 }, delivery: { kind: 'silent' },
+      target: { kind: 'new_once' },
+    });
+
+    await service.execute(service.store.find(keep.id), 'manual');
+    await service.execute(service.store.find(fresh.id), 'manual');
+    assert.equal(requests[0].clearContext, false);
+    assert.equal(requests[1].clearContext, true);
+  } finally {
+    await service.stop();
+  }
+});
